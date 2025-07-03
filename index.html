@@ -1,0 +1,987 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Material</title>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.8.0",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "recharts": "https://esm.sh/recharts@^3.0.2"
+  }
+}
+</script>
+    <style>
+        :root {
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-400: #94a3b8;
+            --slate-300: #cbd5e1;
+            --purple-400: #c084fc;
+            --purple-500: #a855f7;
+            --purple-600: #9333ea;
+            --pink-500: #ec4899;
+            --pink-600: #db2777;
+            --yellow-200: #fef08a;
+            --yellow-300: #fde047;
+            --yellow-400: #facc15;
+            --orange-500: #f97316;
+            --green-300: #86efac;
+            --teal-400: #2dd4bf;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            50% { opacity: .5; }
+        }
+
+        body {
+            background-color: var(--slate-900);
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            color: white;
+            margin: 0;
+        }
+
+        .selection\:bg-purple-500\/30 *::selection {
+            background-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .container-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 64rem; /* max-w-5xl */
+            margin-left: auto;
+            margin-right: auto;
+            background-color: rgba(30, 41, 59, 0.5); /* bg-slate-800/50 */
+            border-radius: 1rem; /* rounded-2xl */
+            box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.2); /* shadow-2xl shadow-purple-500/20 */
+            border: 1px solid var(--slate-700);
+            padding: 1.5rem; /* p-6 */
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .header h1 {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            background-image: linear-gradient(to right, var(--purple-400), var(--pink-500));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+        }
+        .header .subtitle {
+            color: var(--slate-400);
+            margin: 0;
+        }
+        .header-actions {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Tip Button */
+        .tip-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-image: linear-gradient(to bottom right, var(--yellow-400), var(--orange-500));
+            color: var(--slate-900);
+            font-weight: 700;
+            box-shadow: 0 10px 15px -3px rgba(250, 204, 21, 0.4), 0 4px 6px -2px rgba(250, 204, 21, 0.2);
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .tip-button:hover {
+            transform: scale(1.05);
+        }
+        .tip-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+        .tip-button .spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--slate-900);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .tip-display {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            text-align: center;
+            color: rgba(254, 240, 138, 0.8);
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background-color: rgba(51, 65, 85, 0.5);
+            border-radius: 0.375rem;
+        }
+        .tip-display svg {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Reels */
+        .reels-grid {
+            margin-top: 1.5rem;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            border: 2px solid rgba(51, 65, 85, 0.8);
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 1);
+        }
+        .reel {
+            position: relative;
+            height: 18rem; /* h-72 */
+            overflow: hidden;
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 0.5rem;
+            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 1);
+            border: 2px solid var(--slate-800);
+            transition: border-color 0.5s;
+        }
+        .reel.winning {
+            border-color: var(--yellow-400);
+        }
+        .reel-inner {
+            display: flex;
+            flex-direction: column;
+            transition: transform 2s cubic-bezier(0.3, 1, 0.7, 1);
+        }
+        .symbol-view {
+            height: 6rem; /* h-24 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s;
+        }
+        .symbol-view.winning {
+            transform: scale(1.25);
+        }
+        .symbol-view span {
+            font-size: 3.75rem; /* text-6xl */
+            filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5));
+            transition: all 0.3s;
+        }
+        .symbol-view.winning span {
+            color: var(--yellow-300);
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .win-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 20;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        .win-overlay-text1 {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700;
+            color: var(--yellow-300);
+            animation: pulse 1.5s infinite;
+        }
+        .win-overlay-text2 {
+            font-size: 4.5rem; /* text-7xl */
+            font-weight: 900;
+            color: white;
+            -webkit-text-stroke: 2px var(--yellow-400);
+        }
+
+        /* Balance Display */
+        .balance-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(15, 23, 42, 0.4);
+            border-radius: 0.75rem;
+            border: 1px solid var(--slate-700);
+        }
+        .balance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .balance-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--slate-300);
+            margin: 0;
+        }
+        .balance-amount {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(to right, var(--green-300), var(--teal-400));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .chart-container {
+            height: 12rem;
+            width: 100%;
+        }
+
+        /* Controls */
+        .controls-grid {
+            margin-top: 1rem;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1rem;
+            align-items: center;
+            background-color: rgba(15, 23, 42, 0.4);
+            border-radius: 0.75rem;
+            border: 1px solid var(--slate-700);
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .bet-display {
+            text-align: center;
+            width: 7rem;
+        }
+        .bet-display .label {
+            font-size: 0.875rem;
+            color: var(--slate-400);
+        }
+        .bet-display .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .main-actions {
+            order: -1;
+        }
+        .auto-spin-button {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--slate-600);
+        }
+        .auto-spin-button:hover {
+            background-color: var(--slate-500);
+        }
+        .auto-spin-button.active {
+            background-color: var(--red-500);
+        }
+        .auto-spin-button.active:hover {
+            background-color: var(--red-600);
+        }
+        .spin-button {
+            padding: 1.5rem;
+            border-radius: 9999px;
+            color: white;
+            font-weight: 700;
+            transition: all 0.3s;
+            transform-origin: center;
+            background-image: linear-gradient(to bottom right, var(--purple-600), var(--pink-600));
+            box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.4), 0 4px 6px -2px rgba(147, 51, 234, 0.2);
+        }
+        .spin-button:hover {
+            background-image: linear-gradient(to bottom right, var(--purple-500), var(--pink-500));
+        }
+        .spin-button:active {
+            transform: scale(0.95);
+        }
+        .spin-button .play-icon.spinning {
+             animation: spin 1s linear infinite;
+        }
+        .speed-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .speed-control label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--slate-400);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        .speed-control input[type="range"] {
+            width: 12rem;
+            height: 0.5rem;
+            background: var(--slate-700);
+            border-radius: 0.5rem;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+        .speed-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 1rem;
+            height: 1rem;
+            background: var(--purple-500);
+            border-radius: 50%;
+        }
+        .speed-control input[type="range"]::-moz-range-thumb {
+            width: 1rem;
+            height: 1rem;
+            background: var(--purple-500);
+            border-radius: 50%;
+            border: none;
+        }
+        
+        /* Utility */
+        button {
+            border: none;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .icon-btn {
+            padding: 0.75rem;
+            background-color: var(--slate-700);
+            border-radius: 9999px;
+            transition: background-color 0.2s;
+        }
+        .icon-btn:hover {
+            background-color: var(--slate-600);
+        }
+        .icon-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--slate-500);
+            font-size: 0.75rem;
+        }
+
+        /* SM Breakpoint */
+        @media (min-width: 640px) {
+            .header {
+                flex-direction: row;
+                text-align: left;
+            }
+            .header-actions {
+                margin-top: 0;
+            }
+            .header h1 {
+                font-size: 3rem; /* text-5xl */
+            }
+            .balance-amount {
+                font-size: 3.75rem; /* text-5xl */
+            }
+            .win-overlay-text1 { font-size: 2.25rem; }
+            .win-overlay-text2 { font-size: 4.5rem; }
+        }
+
+        /* MD Breakpoint */
+        @media (min-width: 768px) {
+            .controls-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .main-actions {
+                order: 0;
+            }
+        }
+    </style>
+</head>
+<body class="selection:bg-purple-500/30">
+
+    <div class="container-wrapper">
+        <div class="game-container">
+            <header class="header">
+                <div class="header-title-group">
+                     <button id="sound-toggle-btn" class="icon-btn" aria-label="Mute sound">
+                        <!-- SoundOnIcon -->
+                        <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                        </svg>
+                        <!-- SoundOffIcon -->
+                        <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                        </svg>
+                     </button>
+                    <div>
+                        <h1>Support Material</h1>
+                        <p class="subtitle">OT 4 ทุ่ม</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="tip-btn" class="tip-button">
+                        <span id="tip-btn-content">
+                            <!-- SparklesIcon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" /></svg>
+                            <span>Lucky Tip</span>
+                        </span>
+                        <span id="tip-btn-loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <span>Thinking...</span>
+                        </span>
+                    </button>
+                    <p id="tip-output" class="tip-display">
+                        <!-- LightBulbIcon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20" style="display: none;"><path d="M10 2a1 1 0 011 1v1.017a4.986 4.986 0 013.983 3.983H16a1 1 0 110 2h-1.017a4.986 4.986 0 01-3.983 3.983V16a1 1 0 11-2 0v-2.017A4.986 4.986 0 016.017 10H5a1 1 0 110-2h1.017A4.986 4.986 0 0110 4.017V3a1 1 0 011-1zM9 10a1 1 0 00-1 .993 1.006 1.006 0 002.006 0A1 1 0 0010 10a1 1 0 00-1-.007zM10 17a1 1 0 011 1v.5a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5V18a1 1 0 011-1z" /></svg>
+                        <span id="tip-text"></span>
+                    </p>
+                </div>
+            </header>
+
+            <main>
+                <div id="reels-container" class="reels-grid">
+                    <!-- Reels will be generated by JS -->
+                </div>
+
+                <div class="balance-container">
+                    <div class="balance-header">
+                        <h2>Balance</h2>
+                        <button id="toggle-view-btn" class="icon-btn" aria-label="Show balance graph">
+                           <!-- ChartBarIcon -->
+                           <svg id="chart-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+                           <!-- CurrencyDollarIcon -->
+                           <svg id="dollar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.826-1.106-2.156 0-2.982C10.544 8.22 11.27 8 12 8s1.456.22 2.003.659c1.106.826 1.106 2.156 0 2.982m0 0l-3.379 2.536M12 6c1.148 0 2.25.334 3.134.935l.813.61a3.746 3.746 0 010 5.252l-.813.61C14.25 17.666 13.148 18 12 18c-1.148 0-2.25-.334-3.134-.935l-.813-.61a3.746 3.746 0 010-5.252l.813-.61C9.75 6.334 10.852 6 12 6z" /></svg>
+                        </button>
+                    </div>
+                    <div id="balance-display-content">
+                        <p id="balance-amount" class="balance-amount"></p>
+                    </div>
+                     <div id="chart-display-content" class="chart-container" style="display: none;">
+                        <svg id="balance-chart" width="100%" height="100%"></svg>
+                     </div>
+                </div>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <button id="bet-down-btn" class="icon-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z" /></svg></button>
+                        <div class="bet-display">
+                            <p class="label">BET</p>
+                            <p id="bet-amount" class="amount"></p>
+                        </div>
+                        <button id="bet-up-btn" class="icon-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg></button>
+                    </div>
+
+                    <div class="control-group main-actions">
+                        <button id="auto-spin-btn" class="auto-spin-button">
+                             <!-- PlayIcon -->
+                            <svg id="auto-spin-play-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M8 5v14l11-7z" /></svg>
+                            <!-- PauseIcon -->
+                            <svg id="auto-spin-pause-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                            AUTO
+                        </button>
+                        <button id="spin-btn" class="spin-button">
+                             <!-- PlayIcon -->
+                            <svg id="spin-btn-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-10 h-10 play-icon"><path d="M8 5v14l11-7z" /></svg>
+                        </button>
+                    </div>
+
+                    <div class="speed-control">
+                        <label for="speed-slider">
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-4 h-4"><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
+                           SPEED (<span id="speed-value">1</span>x)
+                        </label>
+                        <input id="speed-slider" type="range" min="1" max="100" value="1" />
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer">
+            <p>Support Material. For entertainment purposes only.</p>
+        </footer>
+    </div>
+
+<script type="module">
+    import { GoogleGenAI } from "@google/genai";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- CONSTANTS ---
+        const REEL_COUNT = 5;
+        const ROW_COUNT = 3;
+        const SYMBOLS = ['💎', '👑', '🔔', '🍀', '🍒', '🍋', 'BAR'];
+        const MIN_BET = 10;
+        const MAX_BET = 500;
+        const BET_INCREMENT = 10;
+        const PAY_TABLE = {
+            '💎': { 3: 5, 4: 25, 5: 100 },
+            '👑': { 3: 4, 4: 20, 5: 75 },
+            'BAR': { 3: 3, 4: 15, 5: 50 },
+            '🔔': { 3: 2, 4: 10, 5: 25 },
+            '🍀': { 3: 1.5, 4: 7.5, 5: 20 },
+            '🍒': { 3: 1, 4: 5, 5: 15 },
+            '🍋': { 3: 0.5, 4: 2.5, 5: 10 },
+        };
+        const PAY_LINES = [
+            [1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [2, 2, 2, 2, 2],
+            [0, 1, 2, 1, 0], [2, 1, 0, 1, 2],
+        ];
+
+        // --- STATE ---
+        let balance = 1000;
+        let betAmount = 10;
+        let speed = 1;
+        let reels = Array(REEL_COUNT).fill(0).map(() => Array(ROW_COUNT).fill(SYMBOLS[0]));
+        let isSpinning = false;
+        let isAutoSpinning = false;
+        let balanceHistory = [{ spin: 0, balance: 1000 }];
+        let spinCount = 0;
+        let isSoundOn = true;
+        let showGraph = false;
+        let geminiAI = null;
+
+        // --- DOM ELEMENTS ---
+        const dom = {
+            balanceAmount: document.getElementById('balance-amount'),
+            betAmount: document.getElementById('bet-amount'),
+            reelsContainer: document.getElementById('reels-container'),
+            spinBtn: document.getElementById('spin-btn'),
+            spinBtnIcon: document.getElementById('spin-btn-icon'),
+            betDownBtn: document.getElementById('bet-down-btn'),
+            betUpBtn: document.getElementById('bet-up-btn'),
+            speedSlider: document.getElementById('speed-slider'),
+            speedValue: document.getElementById('speed-value'),
+            autoSpinBtn: document.getElementById('auto-spin-btn'),
+            autoSpinPlayIcon: document.getElementById('auto-spin-play-icon'),
+            autoSpinPauseIcon: document.getElementById('auto-spin-pause-icon'),
+            soundToggleBtn: document.getElementById('sound-toggle-btn'),
+            soundOnIcon: document.getElementById('sound-on-icon'),
+            soundOffIcon: document.getElementById('sound-off-icon'),
+            tipBtn: document.getElementById('tip-btn'),
+            tipBtnContent: document.getElementById('tip-btn-content'),
+            tipBtnLoading: document.getElementById('tip-btn-loading'),
+            tipOutput: document.getElementById('tip-output'),
+            tipText: document.getElementById('tip-text'),
+            tipIcon: document.querySelector('#tip-output svg'),
+            toggleViewBtn: document.getElementById('toggle-view-btn'),
+            chartIcon: document.getElementById('chart-icon'),
+            dollarIcon: document.getElementById('dollar-icon'),
+            balanceDisplayContent: document.getElementById('balance-display-content'),
+            chartDisplayContent: document.getElementById('chart-display-content'),
+            balanceChart: document.getElementById('balance-chart'),
+        };
+
+        // --- SOUND SERVICE ---
+        const soundService = (() => {
+            let audioCtx = null;
+            let isEnabled = true;
+
+            const init = () => {
+                if (audioCtx) return;
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) { console.error("Web Audio API not supported."); }
+            };
+
+            const playTone = (freq, dur, type = 'sine', vol = 0.5) => {
+                if (!audioCtx || !isEnabled) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.start(audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + dur);
+                osc.stop(audioCtx.currentTime + dur);
+            };
+            
+            return {
+                init,
+                toggle: (enabled) => {
+                    isEnabled = enabled;
+                    if(enabled) {
+                        init();
+                        playTone(600, 0.1, 'triangle', 0.3);
+                    }
+                },
+                play: (type) => {
+                    if (!isEnabled) return;
+                    init();
+                    switch(type) {
+                        case 'spin':
+                            playTone(150, 0.2, 'square', 0.2);
+                            setTimeout(() => playTone(200, 0.15, 'square', 0.2), 50);
+                            break;
+                        case 'win':
+                            playTone(523.25, 0.1, 'triangle', 0.6); // C5
+                            setTimeout(() => playTone(659.25, 0.1, 'triangle', 0.6), 100); // E5
+                            setTimeout(() => playTone(783.99, 0.2, 'triangle', 0.6), 200); // G5
+                            setTimeout(() => playTone(1046.50, 0.3, 'triangle', 0.6), 350); // C6
+                            break;
+                        case 'click': playTone(880, 0.08, 'triangle', 0.4); break;
+                        case 'bet': playTone(440, 0.05, 'sine', 0.3); break;
+                    }
+                }
+            };
+        })();
+
+        // --- GEMINI SERVICE ---
+        const getLuckyTip = async () => {
+            if (!geminiAI) {
+                try {
+                    // This assumes process.env.API_KEY is available in the execution context as per instructions
+                    geminiAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                } catch (e) {
+                     console.error("API_KEY not found. Gemini features disabled.", e);
+                     return "Could not initialize AI. Is the API Key set?";
+                }
+            }
+            try {
+                const response = await geminiAI.models.generateContent({
+                    model: "gemini-2.5-flash-preview-04-17",
+                    contents: "Generate a very short, fun, and quirky good luck message for a slot machine player. Make it encouraging and creative. Maximum 15 words.",
+                    config: { temperature: 1, topP: 0.95 }
+                });
+                return response.text.trim();
+            } catch (error) {
+                console.error("Error fetching lucky tip from Gemini API:", error);
+                throw new Error("Failed to communicate with the AI oracle.");
+            }
+        };
+        
+        // --- UI UPDATE FUNCTIONS ---
+        const updateBalanceDisplay = () => {
+            dom.balanceAmount.textContent = balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (showGraph) {
+                renderBalanceChart();
+            }
+        };
+
+        const updateBetDisplay = () => {
+            dom.betAmount.textContent = betAmount;
+        };
+        
+        const updateControls = () => {
+            const canSpin = balance >= betAmount && !isSpinning;
+            dom.spinBtn.disabled = !canSpin || isAutoSpinning;
+            dom.betDownBtn.disabled = isSpinning || betAmount <= MIN_BET;
+            dom.betUpBtn.disabled = isSpinning || betAmount >= MAX_BET;
+            dom.speedSlider.disabled = isSpinning;
+            dom.autoSpinBtn.disabled = isSpinning && !isAutoSpinning;
+        };
+
+        const renderReels = (initial = false) => {
+            dom.reelsContainer.innerHTML = '';
+            reels.forEach((reelSymbols, reelIndex) => {
+                const reelEl = document.createElement('div');
+                reelEl.className = 'reel';
+                reelEl.dataset.reelIndex = reelIndex;
+
+                const reelInnerEl = document.createElement('div');
+                reelInnerEl.className = 'reel-inner';
+                
+                reelSymbols.forEach((symbol, symbolIndex) => {
+                    const symbolEl = document.createElement('div');
+                    symbolEl.className = 'symbol-view';
+                    symbolEl.dataset.symbolIndex = symbolIndex;
+                    const span = document.createElement('span');
+                    span.textContent = symbol;
+                    symbolEl.appendChild(span);
+                    reelInnerEl.appendChild(symbolEl);
+                });
+                reelEl.appendChild(reelInnerEl);
+                dom.reelsContainer.appendChild(reelEl);
+
+                if (!initial) {
+                    reelInnerEl.style.transition = `transform ${2 / speed}s cubic-bezier(0.3, 1, 0.7, 1)`;
+                    requestAnimationFrame(() => {
+                        reelInnerEl.style.transform = `translateY(-${100 * (reelSymbols.length - ROW_COUNT) / reelSymbols.length}%)`;
+                    });
+                }
+            });
+        };
+        
+        const renderBalanceChart = () => {
+            const svg = dom.balanceChart;
+            svg.innerHTML = '';
+            
+            const padding = { top: 10, right: 10, bottom: 20, left: 40 };
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+            const contentWidth = width - padding.left - padding.right;
+            const contentHeight = height - padding.top - padding.bottom;
+
+            const xDomain = [0, Math.max(10, balanceHistory.length - 1)];
+            const yMin = Math.min(...balanceHistory.map(d => d.balance));
+            const yMax = Math.max(...balanceHistory.map(d => d.balance));
+            const yDomain = [Math.max(0, yMin - 100), yMax + 100];
+
+            const xScale = (d) => (d / xDomain[1]) * contentWidth + padding.left;
+            const yScale = (d) => contentHeight - ((d - yDomain[0]) / (yDomain[1] - yDomain[0])) * contentHeight + padding.top;
+
+            // Grid lines
+            const yTicks = 5;
+            for (let i = 0; i <= yTicks; i++) {
+                const y = padding.top + (i / yTicks) * contentHeight;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', padding.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', width - padding.right);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', 'var(--slate-700)');
+                line.setAttribute('stroke-dasharray', '3 3');
+                svg.appendChild(line);
+
+                const value = yDomain[1] - (i / yTicks) * (yDomain[1] - yDomain[0]);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', padding.left - 8);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('fill', 'var(--slate-400)');
+                text.setAttribute('font-size', '10');
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(value);
+                svg.appendChild(text);
+            }
+            
+            // Line
+            const pathData = balanceHistory.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(d.spin)} ${yScale(d.balance)}`).join(' ');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', 'var(--purple-500)');
+            path.setAttribute('stroke-width', '2');
+            svg.appendChild(path);
+        };
+        
+        // --- GAME LOGIC ---
+        const generateRandomReels = () => {
+            return Array(REEL_COUNT).fill(0).map(() => 
+                Array(30).fill(0).map(() => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)])
+            );
+        };
+
+        const calculateWinnings = (currentReels) => {
+            let totalWinnings = 0;
+            const finalSymbols = currentReels.map(reel => reel.slice(0, ROW_COUNT));
+            const winningLineCoords = [];
+
+            PAY_LINES.forEach(line => {
+                const symbolsOnLine = line.map((rowIndex, colIndex) => finalSymbols[colIndex][rowIndex]);
+                const firstSymbol = symbolsOnLine[0];
+                let matchCount = 1;
+                for (let i = 1; i < symbolsOnLine.length; i++) {
+                    if (symbolsOnLine[i] === firstSymbol) matchCount++;
+                    else break;
+                }
+                
+                if (PAY_TABLE[firstSymbol] && PAY_TABLE[firstSymbol][matchCount]) {
+                    totalWinnings += PAY_TABLE[firstSymbol][matchCount] * betAmount;
+                    line.forEach((rowIndex, colIndex) => {
+                        if(colIndex < matchCount) winningLineCoords.push([rowIndex, colIndex]);
+                    });
+                }
+            });
+            
+            return { totalWinnings, lines: winningLineCoords };
+        };
+
+        const handleSpin = () => {
+            if (isSpinning || balance < betAmount) {
+                if (balance < betAmount) setIsAutoSpinning(false);
+                return;
+            }
+
+            soundService.play('spin');
+            isSpinning = true;
+            spinCount++;
+            balance -= betAmount;
+            balanceHistory.push({ spin: spinCount, balance: balance });
+            
+            dom.reelsContainer.innerHTML = '';
+            
+            updateUI();
+            
+            const newReels = generateRandomReels();
+            reels = newReels;
+            renderReels();
+
+            setTimeout(() => {
+                const { totalWinnings, lines } = calculateWinnings(newReels);
+
+                if (totalWinnings > 0) {
+                    balance += totalWinnings;
+                    balanceHistory[balanceHistory.length-1].balance = balance;
+                    soundService.play('win');
+                    showWinAnimation(totalWinnings, lines);
+                }
+                
+                isSpinning = false;
+                if (isAutoSpinning) {
+                    setTimeout(handleSpin, 500);
+                }
+                updateUI();
+            }, 2000 / speed);
+        };
+
+        const showWinAnimation = (winnings, lines) => {
+             // Highlight winning symbols and reels
+            lines.forEach(([row, col]) => {
+                const reelEl = dom.reelsContainer.querySelector(`.reel[data-reel-index="${col}"]`);
+                reelEl?.classList.add('winning');
+                const symbolEl = reelEl?.querySelector(`.symbol-view[data-symbol-index="${row}"]`);
+                symbolEl?.classList.add('winning');
+            });
+            
+            // Show win overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'win-overlay';
+            overlay.innerHTML = `
+                <div>
+                    <p class="win-overlay-text1">YOU WON!</p>
+                    <p class="win-overlay-text2">${winnings.toLocaleString()}</p>
+                </div>
+            `;
+            dom.reelsContainer.appendChild(overlay);
+        };
+
+        const setIsAutoSpinning = (value) => {
+            soundService.play('click');
+            isAutoSpinning = value;
+            dom.autoSpinBtn.classList.toggle('active', isAutoSpinning);
+            dom.autoSpinPlayIcon.style.display = isAutoSpinning ? 'none' : 'block';
+            dom.autoSpinPauseIcon.style.display = isAutoSpinning ? 'block' : 'none';
+            if (isAutoSpinning && !isSpinning) {
+                handleSpin();
+            }
+            updateControls();
+        };
+
+        const handleFetchTip = async () => {
+            soundService.play('click');
+            dom.tipBtn.disabled = true;
+            dom.tipBtnContent.style.display = 'none';
+            dom.tipBtnLoading.style.display = 'flex';
+            dom.tipText.textContent = '';
+            dom.tipIcon.style.display = 'none';
+            
+            try {
+                const tip = await getLuckyTip();
+                dom.tipText.textContent = tip;
+                dom.tipIcon.style.display = 'block';
+            } catch (error) {
+                dom.tipText.textContent = 'Could not fetch a tip. The odds are in your hands!';
+                dom.tipIcon.style.display = 'block';
+            } finally {
+                dom.tipBtn.disabled = false;
+                dom.tipBtnContent.style.display = 'flex';
+                dom.tipBtnLoading.style.display = 'none';
+            }
+        };
+        
+        // --- EVENT LISTENERS ---
+        dom.spinBtn.addEventListener('click', handleSpin);
+        dom.betDownBtn.addEventListener('click', () => {
+            soundService.play('bet');
+            betAmount = Math.max(MIN_BET, betAmount - BET_INCREMENT);
+            updateUI();
+        });
+        dom.betUpBtn.addEventListener('click', () => {
+            soundService.play('bet');
+            betAmount = Math.min(MAX_BET, betAmount + BET_INCREMENT);
+            updateUI();
+        });
+        dom.speedSlider.addEventListener('input', (e) => {
+            speed = Number(e.target.value);
+            dom.speedValue.textContent = speed;
+        });
+        dom.autoSpinBtn.addEventListener('click', () => setIsAutoSpinning(!isAutoSpinning));
+        dom.tipBtn.addEventListener('click', handleFetchTip);
+        dom.soundToggleBtn.addEventListener('click', () => {
+            isSoundOn = !isSoundOn;
+            soundService.toggle(isSoundOn);
+            dom.soundOnIcon.style.display = isSoundOn ? 'block' : 'none';
+            dom.soundOffIcon.style.display = isSoundOn ? 'none' : 'block';
+            dom.soundToggleBtn.setAttribute('aria-label', isSoundOn ? "Mute sound" : "Unmute sound");
+        });
+        dom.toggleViewBtn.addEventListener('click', () => {
+            showGraph = !showGraph;
+            dom.balanceDisplayContent.style.display = showGraph ? 'none' : 'block';
+            dom.chartDisplayContent.style.display = showGraph ? 'block' : 'none';
+            dom.chartIcon.style.display = showGraph ? 'none' : 'block';
+            dom.dollarIcon.style.display = showGraph ? 'block' : 'none';
+            dom.toggleViewBtn.setAttribute('aria-label', showGraph ? 'Show numeric balance' : 'Show balance graph');
+            if (showGraph) {
+                renderBalanceChart();
+            }
+        });
+        
+        // --- INITIALIZATION ---
+        const updateUI = () => {
+            updateBalanceDisplay();
+            updateBetDisplay();
+            updateControls();
+            dom.spinBtnIcon.classList.toggle('spinning', isSpinning);
+        };
+        
+        const init = () => {
+            // A first "user gesture" is needed for audio context on some browsers
+            document.body.addEventListener('click', () => soundService.init(), { once: true });
+            reels = Array(REEL_COUNT).fill(0).map(() => Array(ROW_COUNT).fill(SYMBOLS[0]));
+            renderReels(true);
+            updateUI();
+        };
+
+        init();
+    });
+</script>
+
+</body>
+</html>
